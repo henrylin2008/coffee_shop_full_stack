@@ -7,6 +7,10 @@ from flask_cors import CORS
 from .database.models import db_drop_and_create_all, setup_db, Drink
 from .auth.auth import AuthError, requires_auth
 
+
+# ---------------------------------------------------------------------#
+# Initial setups
+# ---------------------------------------------------------------------#
 app = Flask(__name__)
 setup_db(app)
 CORS(app)
@@ -18,7 +22,10 @@ CORS(app)
 '''
 # db_drop_and_create_all()
 
-## ROUTES
+
+# ---------------------------------------------------------------------#
+# Endpoints
+# ---------------------------------------------------------------------#
 '''
 @TODO implement endpoint
     GET /drinks
@@ -27,6 +34,11 @@ CORS(app)
     returns status code 200 and json {"success": True, "drinks": drinks} where drinks is the list of drinks
         or appropriate status code indicating reason for failure
 '''
+
+
+@app.route('/drinks', methods=['GET'])
+def retrieve_drinks():
+    pass
 
 
 '''
@@ -39,6 +51,11 @@ CORS(app)
 '''
 
 
+@app.route('/drinks-detail', methods=['GET'])
+def retrieve_drinks_detail():
+    pass
+
+
 '''
 @TODO implement endpoint
     POST /drinks
@@ -48,6 +65,11 @@ CORS(app)
     returns status code 200 and json {"success": True, "drinks": drink} where drink an array containing only the newly created drink
         or appropriate status code indicating reason for failure
 '''
+
+
+@app.route('/drinks', methods=['POST'])
+def add_drink():
+    pass
 
 
 '''
@@ -63,6 +85,11 @@ CORS(app)
 '''
 
 
+@app.route('/drinks/<int:drink_id>', methods=['PATCH'])
+def update_drink():
+    pass
+
+
 '''
 @TODO implement endpoint
     DELETE /drinks/<id>
@@ -75,34 +102,74 @@ CORS(app)
 '''
 
 
-## Error Handling
+@app.route('/drinks/<int:drink_id>', methods=['DELETE'])
+def delete_drink():
+    pass
+
+
+# ---------------------------------------------------------------------#
+# Error Handlers
+# ---------------------------------------------------------------------#
 '''
 Example error handling for unprocessable entity
 '''
+
+@app.errorhandler(400)
+def bad_request(error):
+    return jsonify({
+        "success": False,
+        "error": 400,
+        "message": "Bad request"
+    }), 400
+
+
+@app.errorhandler(401)
+def not_found(error):
+    return jsonify({
+        "success": False,
+        "error": 401,
+        "message": "Not authorized"
+    }), 404
+
+@app.errorhandler(404)
+def not_found(error):
+    return jsonify({
+        "success": False,
+        "error": 404,
+        "message": "Resource not found"
+    }), 404
+
+
+@app.errorhandler(405)
+def method_not_allowed(error):
+    return jsonify({
+        "success": False,
+        "error": 405,
+        "message": "Method not allowed"
+    }), 405
+
+
 @app.errorhandler(422)
 def unprocessable(error):
     return jsonify({
-                    "success": False, 
-                    "error": 422,
-                    "message": "unprocessable"
-                    }), 422
+        "success": False,
+        "error": 422,
+        "message": "Unprocessable"
+    }), 422
 
-'''
-@TODO implement error handlers using the @app.errorhandler(error) decorator
-    each error handler should return (with approprate messages):
-             jsonify({
-                    "success": False, 
-                    "error": 404,
-                    "message": "resource not found"
-                    }), 404
 
-'''
+@app.errorhandler(500)
+def server_error(error):
+    return jsonify({
+        "success": False,
+        "error": 500,
+        "message": "Internal server error"
+    }), 500
 
-'''
-@TODO implement error handler for 404
-    error handler should conform to general task above 
-'''
 
+@app.errorhandler(AuthError)
+def unauthorized(error):
+    return
 
 '''
 @TODO implement error handler for AuthError
