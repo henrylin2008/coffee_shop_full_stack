@@ -194,19 +194,20 @@ def verify_decode_jwt(token):
         'description': 'Unable to find the appropriate key.'
     }, 400)
 
-    """
-    @TODO implement @requires_auth(permission) decorator method
-        @INPUTS
-            permission: string permission (i.e. 'post:drink')
-
-        it should use the get_token_auth_header method to get the token
-        it should use the verify_decode_jwt method to decode the jwt
-        it should use the check_permissions method validate claims and check the requested permission
-        return the decorator which passes the decoded payload to the decorated method
-    """
-
 
 def requires_auth(permission=''):
+    """ Obtains the access token from get_token_auth_header and decodes the token,
+        and it validates claims and check the requested permission
+
+    Parameter:
+        -permission (str): string that represents the permission (i.e. "post:drink")
+
+    Returns:
+        -the decorator which passes the decoded payload to the decorated method
+
+    Raises:
+        -AuthError: 401, unauthorized if no token provided
+    """
     def requires_auth_decorator(f):
         @wraps(f)
         def wrapper(*args, **kwargs):
@@ -219,7 +220,5 @@ def requires_auth(permission=''):
             check_permissions(permission, payload)
 
             return f(payload, *args, **kwargs)
-
         return wrapper
-
     return requires_auth_decorator
