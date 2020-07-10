@@ -34,16 +34,16 @@ def get_token_auth_header():
     """ Obtains the access token from the Authorization Header
 
     It should attempt to get the header from the request,
-    and split bearer and the token
+    and split the bearer and the token
 
     Returns:
         -str: represents the token part of the authorization header
 
     Raises:
-        -AuthError: [401, "authorization_header_missing"], Authorization header is expected
-        -AuthError: [401, "invalid_header"], Authorization header must start with "Bearer"
-        -AuthError: [401, "invalid_header"], token not found
-        -AuthError: [401, "invalid_header"], Authorization header must be bearer token
+        -AuthError: [401, "authorization_header_missing"], "Authorization header is expected"
+        -AuthError: [401, "invalid_header"], "Authorization header must start with "Bearer""
+        -AuthError: [401, "invalid_header"], "token not found"
+        -AuthError: [401, "invalid_header"], "Authorization header must be bearer token"
     """
     auth = request.headers.get('Authorization', None)
     if not auth:
@@ -86,8 +86,8 @@ def check_permissions(permission, payload):
         -boolean: True if permissions are included in the payload
 
     Raises:
-        -400: an AuthError if permissions are not included in the payload
-        -403: an AuthError if the requested permission string is not in the payload permissions array
+        -AuthError: [400, "not_found"], "Permissions are not included in the payload"
+        -AuthError: [403, "unauthorized"], "Permission not found"
     """
     if 'permissions' not in payload:
         raise AuthError({
@@ -112,11 +112,11 @@ def verify_decode_jwt(token):
         -The decoded payload in dict format
 
     Raises:
-         -AuthError: [401, 'token_expired'], 'Authorization malformed.'
-         -AuthError: [401, 'token_expired'], 'Token expired.'
-         -AuthError: [401, 'invalid_claims'], 'Incorrect claims. Please check the audience and issuer.'
-         -AuthError: [400, 'invalid_header'], 'Unable to parse authentication token.'
-         -AuthError: [400, 'invalid_header'], 'Unable to find the appropriate key.'
+         -AuthError: [401, 'token_expired'], "Authorization malformed."
+         -AuthError: [401, 'token_expired'], "Token expired."
+         -AuthError: [401, 'invalid_claims'], "Incorrect claims. Please check the audience and issuer."
+         -AuthError: [400, 'invalid_header'], "Unable to parse authentication token."
+         -AuthError: [400, 'invalid_header'], "Unable to find the appropriate key."
     """
     jsonurl = urlopen(f'https://{AUTH0_DOMAIN}/.well-known/jwks.json')
     jwks = json.loads(jsonurl.read())
@@ -183,7 +183,7 @@ def requires_auth(permission=''):
         -the decorator which passes the decoded payload to the decorated method
 
     Raises:
-        -AuthError: 401, unauthorized if no token provided
+        -AuthError: [401], "Token not provided"
     """
 
     def requires_auth_decorator(f):
