@@ -86,13 +86,13 @@ def check_permissions(permission, payload):
         -boolean: True if permissions are included in the payload
 
     Raises:
-        -AuthError: [400, "not_found"], "Permissions are not included in the payload"
+        -AuthError: [400, "invalid_claims"], "Permissions are not included in JWT"
         -AuthError: [403, "unauthorized"], "Permission not found"
     """
     if 'permissions' not in payload:
         raise AuthError({
-            'code': 'not_found',
-            'description': 'Permissions are not included in the payload'
+            'code': 'invalid_claims',
+            'description': 'Permissions are not included in JWT'
         }, 400)
     if permission not in payload['permissions']:
         raise AuthError({
@@ -183,7 +183,7 @@ def requires_auth(permission=''):
         -the decorator which passes the decoded payload to the decorated method
 
     Raises:
-        -AuthError: [401], "Token not provided"
+        -AuthError: [401], "Token is not provided"
     """
 
     def requires_auth_decorator(f):
