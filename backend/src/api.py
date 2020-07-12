@@ -14,93 +14,115 @@ app = Flask(__name__)
 setup_db(app)
 CORS(app)
 
-'''
-@TODO uncomment the following line to initialize the database
-!! NOTE THIS WILL DROP ALL RECORDS AND START YOUR DB FROM SCRATCH
-!! NOTE THIS MUST BE UNCOMMENTED ON FIRST RUN
-'''
-db_drop_and_create_all()
+
+@app.after_request
+def after_request(response):
+    """Setting Access-Control-allow
+
+    Parameters:
+        response: an instance of response_class
+
+    Return:
+        response object with Access-Control-Allow
+    """
+    response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization,true')
+    response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
+    return response
+
+
+"""
+Drop all records and start DB from scratch
+"""
+# db_drop_and_create_all()
 
 
 @app.route('/drinks', methods=['GET'])
 def retrieve_drinks():
     """An endpoint to handle GET requests '/drinks'
-    Retrieve a list of drinks from database
-    Return:
-        Status code 200 and json object with
-            "success": True or False
-            "drinks": the list of drinks
+    Retrieves a list of drinks with a short description
+
+    Returns:
+        -Status code 200 and json object with
+            -"success" (boolean): True or False
+            -"drinks" (list): a list of drinks
+
     Raises:
-        404: Resource is not found if any drink is not existed.
+        -404: Resource not found
     """
     drink_query = Drink.query.all()
-    drinks = [drink.short() for drink in drink_query]
+    drink_short = [drink.short() for drink in drink_query]
 
-    if len(drinks) == 0:
+    if len(drink_query) == 0:
         abort(404)
 
-    return jsonify({
-        'success': True,
-        'drinks': drinks
-    }), 200
+    try:
+        return jsonify({
+            'success': True,
+            'drinks': drink_short
+        }), 200
+    except:
+        abort(404)
 
 
 @app.route('/drinks-detail', methods=['GET'])
 @requires_auth('get:drinks-detail')
-def retrieve_drinks_detail(payload):
+def retrieve_drinks_detail(token):
     """An endpoint to handle GET requests '/drinks-detail'
-    Retrieve the drink.long() data representation when the request
-    user is valid.
+    Retrieves a list of drinks with a detailed/long description
+
     Arguments:
-        payload (dict): decoded jwt payload
+        -token: decoded jwt payload
+
     Returns:
-        Status code 200 and json object with
-            "success": True or False
-            "drinks": the list of drinks
+        -Status code 200 and json object with
+            -"success" (boolean): True or False
+            -"drinks" (list): a list of drinks
+
     Raises:
-        404: Resource is not found if any drink is not existed.
+        -404: Resource not found
     """
-    all_drinks = Drink.query.all()
-    if all_drinks is None:
+
+    drink_query = Drink.query.all()
+    drink_long = [drink.long() for drink in drink_query]
+
+    if drink_query is None:
         abort(404)
 
-    return jsonify({
-        'success': True,
-        'drinks': [drink.long() for drink in all_drinks]
-    }), 200
+    try:
+        return jsonify({
+            'success': True,
+            'drinks': drink_long
+        }), 200
+    except:
+        abort(404)
 
 
 @app.route('/drinks', methods=['POST'])
 @requires_auth('post:drinks')
-def add_drink(payload):
+def add_drink(token):
     """An endpoint to handle POST request '/drinks'
-    Add a new drink in the drinks table when the request user have
-    a proper permission.
+    Add a new drink to the drink table for a requester with the proper permission
+
     Arguments:
-        payload (dict): decoded jwt payload
+        -token: decoded jwt payload
+
     Returns:
-        Status code 200 and json object with
-            "success": True or False
-            "drinks": a list of drink containing only the newly
-                    created drink
+        -Status code 200 and json object with
+            -"success": True or False
+            -"drinks": a list of drink
+
     Raises:
-        400: Title or recipe has not been submitted.
-        422: Request is unprocessable.
+        -422: Unprocessable request.
     """
     body = request.get_json()
-    drink_title = body.get('title', None)
-    drink_recipe = body.get('recipe', None)
-    if not drink_title or not drink_recipe:
-        return jsonify({
-            'success': False,
-            'error': 400,
-            'message': 'Title and recipe must be submitted.'
-        }), 400
+    title = body.get('title', None)
+    recipe = body.get('recipe', None)
 
-    drink = Drink(title=drink_title, recipe=json.dumps(drink_recipe))
-    print(drink)
+    if not title or not recipe:
+        abort(422)
 
     try:
+        drink = Drink(title=title, recipe=json.dumps(recipe))
         drink.insert()
 
         return jsonify({
@@ -108,7 +130,7 @@ def add_drink(payload):
             'drinks': [drink.long()]
         }), 200
 
-    except Exception:
+    except:
         abort(422)
 
 
@@ -188,9 +210,6 @@ def delete_drink(payload, drink_id):
 # ---------------------------------------------------------------------#
 # Error Handlers
 # ---------------------------------------------------------------------#
-'''
-Example error handling for unprocessable entity
-'''
 
 
 @app.errorhandler(400)
@@ -198,7 +217,7 @@ def bad_request(error):
     return jsonify({
         "success": False,
         "error": 400,
-        "message": "Bad request"
+        "message": "bad request"
     }), 400
 
 
