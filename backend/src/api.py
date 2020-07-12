@@ -52,7 +52,7 @@ def retrieve_drinks():
     drink_query = Drink.query.all()
     drink_short = [drink.short() for drink in drink_query]
 
-    if len(drink_query) == 0:
+    if len(drink_short) == 0:
         abort(404)
 
     try:
@@ -85,7 +85,7 @@ def retrieve_drinks_detail(token):
     drink_query = Drink.query.all()
     drink_long = [drink.long() for drink in drink_query]
 
-    if drink_query is None:
+    if drink_long is None:
         abort(404)
 
     try:
@@ -101,25 +101,29 @@ def retrieve_drinks_detail(token):
 @requires_auth('post:drinks')
 def add_drink(token):
     """An endpoint to handle POST request '/drinks'
-    Add a new drink to the drink table for a requester with the proper permission
+    Add a new drink to the drink table with the proper permission
 
     Arguments:
         -token: decoded jwt payload
 
     Returns:
         -Status code 200 and json object with
-            -"success": True or False
-            -"drinks": a list of drink
+            -"success" (boolean): True or False
+            -"drinks" (list): a list of drink
 
     Raises:
-        -422: Unprocessable request.
+        -422: Unprocessable.
     """
     body = request.get_json()
     title = body.get('title', None)
     recipe = body.get('recipe', None)
 
     if not title or not recipe:
-        abort(422)
+        return jsonify({
+            "success": False,
+            "error": 422,
+            "message": "Title and recipe are required"
+        }), 422
 
     try:
         drink = Drink(title=title, recipe=json.dumps(recipe))
@@ -136,44 +140,56 @@ def add_drink(token):
 
 @app.route('/drinks/<int:drink_id>', methods=['PATCH'])
 @requires_auth('patch:drinks')
-def update_drink(payload, drink_id):
+def update_drink(token, drink_id):
     """An endpoint to handle PATCH request '/drinks/<int:drink_id>'
     Update the name or recipe of the designated drinks.
     It is permitted for users who have the proper validations.
+
     Arguments:
-        payload (dict): decoded jwt payload
-        drink_id (int): drinke id which is wanted to update
+        token (dict): decoded jwt payload
+        drink_id (int): drink id to perform an update
+
     Returns:
         Status code 200 and json object with
-            "success": True or False
-            "drinks": a list of drink containing only the updated
-                    drink
-    Raises:
-        404: Resource is not found if the drink in request is not existed.
-        422: Request is unprocessable.
-    """
-    drink = Drink.query.filter(Drink.id == drink_id).one_or_none()
-    if drink is None:
-        abort(404)
+            -"success" (boolean): True or False
+            -"drinks" (list): an array containing only the updated drink
 
+    Raises:
+        -404: Resource not found
+        -422: Unprocessable
+    """
     body = request.get_json()
-    drink_title = body.get('title', None)
-    if drink_title is not None:
-        drink.title = drink_title
-    drink_recipe = body.get('recipe', None)
-    if drink_recipe is not None:
-        drink.recipe = json.dumps(drink_recipe)
+    title = body.get('title', None)
+    recipe = body.get('recipe', None)
+
+    drink = Drink.query.filter(Drink.id == drink_id).one_or_none()
+
+    if drink is None:
+        return jsonify({
+            "success": False,
+            "error": 404,
+            "message": "No record found in the database"
+        }), 404
 
     try:
+        if title:
+            drink.title = title
+        if recipe:
+            drink.recipe = json.dumps(recipe)
+
         drink.update()
 
-    except Exception as e:
-        abort(422)
+        return jsonify({
+            'success': True,
+            'drinks': [drink.long()]
+        }), 200
 
-    return jsonify({
-        'success': True,
-        'drinks': [drink.long()]
-    })
+    except:
+        return jsonify({
+            "success": False,
+            "error": 422,
+            "message": "Title must be unique"
+        }), 422
 
 
 @app.route('/drinks/<int:drink_id>', methods=['DELETE'])
