@@ -70,8 +70,8 @@ def retrieve_drinks_detail(token):
     """An endpoint to handle GET requests '/drinks-detail'
     Retrieves a list of drinks with a detailed/long description
 
-    Arguments:
-        -token: decoded jwt payload
+    Parameters:
+        -token (dict): decoded jwt payload
 
     Returns:
         -Status code 200 and json object with
@@ -103,7 +103,7 @@ def add_drink(token):
     """An endpoint to handle POST request '/drinks'
     Add a new drink to the drink table with the proper permission
 
-    Arguments:
+    Parameters:
         -token: decoded jwt payload
 
     Returns:
@@ -142,12 +142,11 @@ def add_drink(token):
 @requires_auth('patch:drinks')
 def update_drink(token, drink_id):
     """An endpoint to handle PATCH request '/drinks/<int:drink_id>'
-    Update the name or recipe of the designated drinks.
-    It is permitted for users who have the proper validations.
+    Update the name or recipe of the designated drinks with a proper permission
 
-    Arguments:
-        token (dict): decoded jwt payload
-        drink_id (int): drink id to perform an update
+    Parameters:
+        -token (dict): decoded jwt payload
+        -drink_id (int): the drink id to perform an update
 
     Returns:
         Status code 200 and json object with
@@ -183,7 +182,6 @@ def update_drink(token, drink_id):
             'success': True,
             'drinks': [drink.long()]
         }), 200
-
     except:
         return jsonify({
             "success": False,
@@ -198,9 +196,11 @@ def delete_drink(payload, drink_id):
     """An endpoint to handle DELETE request '/drinks/<int:drink_id>'
     Delete the corresponding row for drink_id. Only users with proper
     permission can delete drinks.
-    Arguments:
-        payload (dict): decoded jwt payload
-        drink_id (int): drink id which is wanted to update
+
+    Parameters:
+        -token (dict): decoded jwt payload
+        -drink_id (int): the drink id to perform an update
+
     Returns:
         Status code 200 and json object with
             "success": True or False
@@ -209,9 +209,14 @@ def delete_drink(payload, drink_id):
         404: Resource is not found if the drink in request is not existed.
         422: Request is unprocessable.
     """
-    drink = Drink.query.get(drink_id)
+    drink = Drink.query.filter(Drink.id == drink_id).one_or_none()
     if drink is None:
-        abort(404)
+        return jsonify({
+            "success": False,
+            "error": 404,
+            "message": "No record found in the database"
+        }), 404
+
     try:
         drink.delete()
 
@@ -219,7 +224,7 @@ def delete_drink(payload, drink_id):
             'success': True,
             'delete': drink.id
         }), 200
-    except Exception:
+    except:
         abort(422)
 
 
