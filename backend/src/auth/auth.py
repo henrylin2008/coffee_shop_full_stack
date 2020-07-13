@@ -100,6 +100,7 @@ def check_permissions(permission, payload):
             'description': 'Permission not found.'
         }, 403)
     return True
+    raise Exception('Not Implemented')
 
 
 def verify_decode_jwt(token):
@@ -170,6 +171,7 @@ def verify_decode_jwt(token):
         'code': 'invalid_header',
         'description': 'Unable to find the appropriate key.'
     }, 400)
+    raise Exception('Not Implemented')
 
 
 def requires_auth(permission=''):
