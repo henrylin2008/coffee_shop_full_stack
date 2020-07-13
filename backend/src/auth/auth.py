@@ -98,7 +98,7 @@ def check_permissions(permission, payload):
         raise AuthError({
             'code': 'Unauthorized',
             'description': 'Permission not found.'
-        }, 403)
+        }, 401)
     return True
     raise Exception('Not Implemented')
 
