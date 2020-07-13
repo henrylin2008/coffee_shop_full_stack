@@ -33,6 +33,8 @@ def after_request(response):
 """
 Drop all records and start DB from scratch
 """
+
+
 # db_drop_and_create_all()
 
 
@@ -68,7 +70,7 @@ def retrieve_drinks():
 @requires_auth('get:drinks-detail')
 def retrieve_drinks_detail(token):
     """An endpoint to handle GET requests '/drinks-detail'
-    Retrieves a list of drinks with a detailed/long description
+    Retrieves a list of drinks with a long description
 
     Parameters:
         -token (dict): decoded jwt payload
@@ -126,7 +128,7 @@ def add_drink(token):
         }), 422
 
     try:
-        drink = Drink(title=title, recipe=json.dumps(recipe))
+        drink = Drink(title=title, recipe=json.dumps([recipe]))
         drink.insert()
 
         return jsonify({
@@ -192,10 +194,9 @@ def update_drink(token, drink_id):
 
 @app.route('/drinks/<int:drink_id>', methods=['DELETE'])
 @requires_auth('delete:drinks')
-def delete_drink(payload, drink_id):
+def delete_drink(token, drink_id):
     """An endpoint to handle DELETE request '/drinks/<int:drink_id>'
-    Delete the corresponding row for drink_id. Only users with proper
-    permission can delete drinks.
+    Delete the corresponding data with the drink_id with a proper permission
 
     Parameters:
         -token (dict): decoded jwt payload
@@ -203,11 +204,12 @@ def delete_drink(payload, drink_id):
 
     Returns:
         Status code 200 and json object with
-            "success": True or False
-            "drinks": the id of the deleted drink
+            "success" (boolean): True or False
+            "drinks" (integer): the id of the deleted drink
+
     Raises:
-        404: Resource is not found if the drink in request is not existed.
-        422: Request is unprocessable.
+        404: Resource not found
+        422: Unprocessable
     """
     drink = Drink.query.filter(Drink.id == drink_id).one_or_none()
     if drink is None:
@@ -288,11 +290,10 @@ def server_error(error):
 
 
 @app.errorhandler(AuthError)
-def unauthorized(error):
-    return
-
-
-'''
-@TODO implement error handler for AuthError
-    error handler should conform to general task above 
-'''
+def handle_auth_error(error):
+    """
+    Receive the raised authorization error and propagates it as response
+    """
+    response = jsonify(error.error)
+    response.status_code = error.status_code
+    return response
