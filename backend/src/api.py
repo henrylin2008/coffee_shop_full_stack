@@ -35,7 +35,7 @@ Drop all records and start DB from scratch
 """
 
 
-# db_drop_and_create_all()
+db_drop_and_create_all()
 
 
 @app.route('/drinks', methods=['GET'])
