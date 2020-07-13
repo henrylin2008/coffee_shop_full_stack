@@ -86,8 +86,8 @@ def check_permissions(permission, payload):
         -boolean: True if permissions are included in the payload
 
     Raises:
-        -AuthError: [400, "invalid_claims"], "Permissions are not included in JWT"
-        -AuthError: [403, "unauthorized"], "Permission not found"
+        -AuthError: [400, "Invalid_claims"], "Permissions are not included in JWT"
+        -AuthError: [401, "Unauthorized"], "Permission not found"
     """
     if 'permissions' not in payload:
         raise AuthError({
