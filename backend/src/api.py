@@ -34,8 +34,14 @@ def after_request(response):
 Drop all records and start DB from scratch
 """
 
-
 db_drop_and_create_all()
+
+# insert sample data
+drink = Drink(
+    title='water',
+    recipe='[{"name": "water", "color": "blue", "parts": 1}]'
+)
+drink.insert()
 
 
 @app.route('/drinks', methods=['GET'])
